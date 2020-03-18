@@ -48,7 +48,9 @@ public class MapperProxyFactory<T> {
   }
 
   public T newInstance(SqlSession sqlSession) {
+    // Mapper代理，代理逻辑在这个类里, 实现了InvocationHandler接口
     final MapperProxy<T> mapperProxy = new MapperProxy<>(sqlSession, mapperInterface, methodCache);
+    // Proxy.newProxyInstance()
     return newInstance(mapperProxy);
   }
 

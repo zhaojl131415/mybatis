@@ -75,11 +75,13 @@ public class CachingExecutor implements Executor {
     flushCacheIfRequired(ms);
     return delegate.update(ms, parameterObject);
   }
-  //getBoundSql 如果是${} 参数在这里映射的  #{}不会处理
+
+  //
   @Override
   public <E> List<E> query(MappedStatement ms, Object parameterObject, RowBounds rowBounds, ResultHandler resultHandler) throws SQLException {
+    // getBoundSql 如果是${} 参数在这里映射的?  #{}不会处理
     BoundSql boundSql = ms.getBoundSql(parameterObject);
-    //确定缓存的key
+    // 确定缓存的key 二级缓存
     CacheKey key = createCacheKey(ms, parameterObject, rowBounds, boundSql);
     return query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
   }

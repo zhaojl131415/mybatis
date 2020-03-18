@@ -56,6 +56,7 @@ public class MapperMethod {
 
   public Object execute(SqlSession sqlSession, Object[] args) {
     Object result;
+    // 判断命令类型
     switch (command.getType()) {
       case INSERT: {
         Object param = method.convertArgsToSqlCommandParam(args);
@@ -73,6 +74,7 @@ public class MapperMethod {
         break;
       }
       case SELECT:
+        // 根据返回值执行对应的方法
         if (method.returnsVoid() && method.hasResultHandler()) {
           executeWithResultHandler(sqlSession, args);
           result = null;
@@ -139,8 +141,11 @@ public class MapperMethod {
 
   private <E> Object executeForMany(SqlSession sqlSession, Object[] args) {
     List<E> result;
+    // 获取传参
     Object param = method.convertArgsToSqlCommandParam(args);
+    // 判断是否有分页
     if (method.hasRowBounds()) {
+      // 如果有分页
       RowBounds rowBounds = method.extractRowBounds(args);
       result = sqlSession.selectList(command.getName(), param, rowBounds);
     } else {

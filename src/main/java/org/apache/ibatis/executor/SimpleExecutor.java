@@ -53,13 +53,28 @@ public class SimpleExecutor extends BaseExecutor {
     }
   }
 
+  /**
+   * 这个方法有点类似JDBC的查询
+   * @param ms
+   * @param parameter
+   * @param rowBounds
+   * @param resultHandler
+   * @param boundSql
+   * @param <E>
+   * @return
+   * @throws SQLException
+   */
   @Override
   public <E> List<E> doQuery(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql) throws SQLException {
     Statement stmt = null;
     try {
+      // 获取配置对象（包括数据库连接），解析xml时的配置信息时存入
       Configuration configuration = ms.getConfiguration();
+      // PreparedStatement
       StatementHandler handler = configuration.newStatementHandler(wrapper, ms, parameter, rowBounds, resultHandler, boundSql);
+      // 关键步骤，类比jdbc
       stmt = prepareStatement(handler, ms.getStatementLog());
+      // ResultSet resultSet = preparedStatement.executeQuery();
       return handler.query(stmt, resultHandler);
     } finally {
       closeStatement(stmt);
@@ -82,8 +97,16 @@ public class SimpleExecutor extends BaseExecutor {
 
   private Statement prepareStatement(StatementHandler handler, Log statementLog) throws SQLException {
     Statement stmt;
+    // 获取连接
     Connection connection = getConnection(statementLog);
+    // 这一步类似于：PreparedStatement preparedStatement = root.prepareStatement("select * from test where id=?"); 获取stmt
     stmt = handler.prepare(connection, transaction.getTimeout());
+    /**
+     * 这一步赋值：类似于：preparedStatement.setString(1,"1");
+     * 调用链
+     * org.apache.ibatis.executor.statement.PreparedStatementHandler.parameterize
+     * org.apache.ibatis.scripting.defaults.DefaultParameterHandler.setParameters
+     */
     handler.parameterize(stmt);
     return stmt;
   }

@@ -143,7 +143,9 @@ public class DefaultSqlSession implements SqlSession {
   @Override
   public <E> List<E> selectList(String statement, Object parameter, RowBounds rowBounds) {
     try {
+      // 初始化xml解析时，每个sql语句封装成MappedStatement，放到map中存起来了，这里就从map中取出来
       MappedStatement ms = configuration.getMappedStatement(statement);
+      // 执行查询
       return executor.query(ms, wrapCollection(parameter), rowBounds, Executor.NO_RESULT_HANDLER);
     } catch (Exception e) {
       throw ExceptionFactory.wrapException("Error querying database.  Cause: " + e, e);

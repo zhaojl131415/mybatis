@@ -79,10 +79,10 @@ public class MapperProxy<T> implements InvocationHandler, Serializable {
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
     try {
       if (Object.class.equals(method.getDeclaringClass())) {
-        //你是不是调用的Object默认的方法
+        // 是不是调用的Object默认的方法
         return method.invoke(this, args);
       } else if (method.isDefault()) {
-        //对于默认方法的处理
+        // 对于默认方法的处理  default void test(){}
         if (privateLookupInMethod == null) {
           return invokeDefaultMethodJava8(proxy, method, args);
         } else {
@@ -92,11 +92,17 @@ public class MapperProxy<T> implements InvocationHandler, Serializable {
     } catch (Throwable t) {
       throw ExceptionUtil.unwrapThrowable(t);
     }
+    // 去缓存里获取MapperMethod，如果没找到就生成一个
     final MapperMethod mapperMethod = cachedMapperMethod(method);
+    // 执行方法
     return mapperMethod.execute(sqlSession, args);
   }
 
   private MapperMethod cachedMapperMethod(Method method) {
+    // methodCache: 在动态代理的时候，会有一个缓存，动态代理一个对象是非常消耗性能的，
+    // 如果已经被代理过一次了，方法已经执行过一次了，下次就直接从缓存里拿，
+    // computeIfAbsent这个是Map的方法，method代表map的key，这里表示如果找到，直接返回value，
+    // 没找到就执行new MapperMethod() 生成一个，跟key一起put到map里，然后返回
     return methodCache.computeIfAbsent(method,
         k -> new MapperMethod(mapperInterface, method, sqlSession.getConfiguration()));
   }

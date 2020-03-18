@@ -56,7 +56,8 @@ public class Test {
     DemoMapper mapper = sqlSession.getMapper(DemoMapper.class);
     Map<String,Object> map = new HashMap<>();
     map.put("id","1");
-    //因为一级缓存 这里不会调用两次SQL
+    //因为一级缓存 这里不会调用两次SQL，
+    // 这里就相当于是调用动态代理的invoke方法
     System.out.println(mapper.selectAll("1", "1"));
     //如果有二级缓存 这里就不会调用两次SQL
     //当调用 sqlSession.close() 或者说刷新缓存方法， 或者说配置了定时清空缓存方法  都会销毁缓存

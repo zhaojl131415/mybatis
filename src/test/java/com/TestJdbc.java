@@ -36,8 +36,8 @@ public class TestJdbc {
     Connection root = DriverManager.getConnection("jdbc:mysql://localhost:3306/test?characterEncoding=utf-8", "root", "1234");
     PreparedStatement preparedStatement = root.prepareStatement("select * from test where id=?");
     preparedStatement.setString(1,"1");
-    preparedStatement.execute();
-    preparedStatement.getResultSet();
+//    preparedStatement.execute();
+//    ResultSet resultSet = preparedStatement.getResultSet();
     ResultSet resultSet = preparedStatement.executeQuery();
     preparedStatement.addBatch();
     while (resultSet.next()) {

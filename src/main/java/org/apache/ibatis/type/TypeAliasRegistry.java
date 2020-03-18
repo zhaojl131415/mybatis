@@ -138,24 +138,38 @@ public class TypeAliasRegistry {
     }
   }
 
+  /**
+   * 注册别名
+   * @param type
+   */
   public void registerAlias(Class<?> type) {
+    // 获取type对应的名字：其实就是调用的java.lang.Class.getName()
     String alias = type.getSimpleName();
+    // 获取@Alias注解
     Alias aliasAnnotation = type.getAnnotation(Alias.class);
+    // 如果@Alias不为空，别名就用注解指定的名字
     if (aliasAnnotation != null) {
       alias = aliasAnnotation.value();
     }
+    // 注册别名
     registerAlias(alias, type);
   }
 
+  /**
+   * 注册别名
+   * @param alias
+   * @param value
+   */
   public void registerAlias(String alias, Class<?> value) {
     if (alias == null) {
       throw new TypeException("The parameter alias cannot be null");
     }
-    // issue #748 不区分大小写   Map ---> java.util.Map
+    // issue #748 不区分大小写：在这里全部转成小写
     String key = alias.toLowerCase(Locale.ENGLISH);
     if (typeAliases.containsKey(key) && typeAliases.get(key) != null && !typeAliases.get(key).equals(value)) {
       throw new TypeException("The alias '" + alias + "' is already mapped to the value '" + typeAliases.get(key).getName() + "'.");
     }
+    // 对应关系存入map
     typeAliases.put(key, value);
   }
 

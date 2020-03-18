@@ -186,7 +186,9 @@ public class DefaultResultSetHandler implements ResultSetHandler {
     int resultSetCount = 0;
     ResultSetWrapper rsw = getFirstResultSet(stmt);
 
+    // 获取自定义的ResultMap xml中<resultMap>
     List<ResultMap> resultMaps = mappedStatement.getResultMaps();
+    // 获取resultMap的长度
     int resultMapCount = resultMaps.size();
     validateResultMapsCount(rsw, resultMapCount);
     while (rsw != null && resultMapCount > resultSetCount) {
@@ -320,6 +322,7 @@ public class DefaultResultSetHandler implements ResultSetHandler {
   //
 
   public void handleRowValues(ResultSetWrapper rsw, ResultMap resultMap, ResultHandler<?> resultHandler, RowBounds rowBounds, ResultMapping parentMapping) throws SQLException {
+    // 判断是否有嵌套ResultMap
     if (resultMap.hasNestedResultMaps()) {
       ensureNoRowBounds();
       checkResultHandler();
@@ -348,9 +351,12 @@ public class DefaultResultSetHandler implements ResultSetHandler {
       throws SQLException {
     DefaultResultContext<Object> resultContext = new DefaultResultContext<>();
     ResultSet resultSet = rsw.getResultSet();
+    // 跟分页有关
     skipRows(resultSet, rowBounds);
+    // 遍历结果集
     while (shouldProcessMoreRows(resultContext, rowBounds) && !resultSet.isClosed() && resultSet.next()) {
       ResultMap discriminatedResultMap = resolveDiscriminatedResultMap(resultSet, resultMap, null);
+      // 获取行数据
       Object rowValue = getRowValue(rsw, discriminatedResultMap, null);
       storeObject(resultHandler, resultContext, rowValue, parentMapping, resultSet);
     }
@@ -396,9 +402,12 @@ public class DefaultResultSetHandler implements ResultSetHandler {
     final ResultLoaderMap lazyLoader = new ResultLoaderMap();
     Object rowValue = createResultObject(rsw, resultMap, lazyLoader, columnPrefix);
     if (rowValue != null && !hasTypeHandlerForResultObject(rsw, resultMap.getType())) {
+      // 通过反射操作返回值
       final MetaObject metaObject = configuration.newMetaObject(rowValue);
       boolean foundValues = this.useConstructorMappings;
+      // 判断是否需要自动映射，这个方法默认为true
       if (shouldApplyAutomaticMappings(resultMap, false)) {
+        // 应用自动映射
         foundValues = applyAutomaticMappings(rsw, resultMap, metaObject, columnPrefix) || foundValues;
       }
       foundValues = applyPropertyMappings(rsw, resultMap, metaObject, lazyLoader, columnPrefix) || foundValues;
@@ -409,12 +418,16 @@ public class DefaultResultSetHandler implements ResultSetHandler {
   }
 
   private boolean shouldApplyAutomaticMappings(ResultMap resultMap, boolean isNested) {
+    // 判断是否自动映射：<resultMap autoMapping="true" id="" type=""></resultMap>
     if (resultMap.getAutoMapping() != null) {
+      // 如果配置了自动映射，直接返回
       return resultMap.getAutoMapping();
     } else {
       if (isNested) {
         return AutoMappingBehavior.FULL == configuration.getAutoMappingBehavior();
       } else {
+        // configuration.getAutoMappingBehavior() 默认为 AutoMappingBehavior.PARTIAL
+        // AutoMappingBehavior.NONE != AutoMappingBehavior.PARTIAL，返回true
         return AutoMappingBehavior.NONE != configuration.getAutoMappingBehavior();
       }
     }
@@ -518,6 +531,12 @@ public class DefaultResultSetHandler implements ResultSetHandler {
     boolean foundValues = false;
     if (!autoMapping.isEmpty()) {
       for (UnMappedColumnAutoMapping mapping : autoMapping) {
+        /**
+         * 最终调用：rs.getString(columnName);
+         * 方法调用链：
+         * org.apache.ibatis.type.BaseTypeHandler#getResult(java.sql.ResultSet, java.lang.String)
+         * org.apache.ibatis.type.StringTypeHandler#getNullableResult(java.sql.ResultSet, java.lang.String)
+         */
         final Object value = mapping.typeHandler.getResult(rsw.getResultSet(), mapping.column);
         if (value != null) {
           foundValues = true;

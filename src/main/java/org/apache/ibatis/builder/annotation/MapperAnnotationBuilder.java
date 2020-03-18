@@ -138,6 +138,7 @@ public class MapperAnnotationBuilder {
         try {
           // issue #237
           if (!method.isBridge()) {
+            // 解析注解@Select、@Insert、@Update、@Delete
             parseStatement(method);
           }
         } catch (IncompleteElementException e) {
@@ -163,6 +164,7 @@ public class MapperAnnotationBuilder {
     }
   }
 
+  // Mapper class文件必须与xml文件，文件名必须一样
   private void loadXmlResource() {
     // Spring may not know the real resource name so we check a flag
     // to prevent loading again a resource twice
@@ -298,6 +300,7 @@ public class MapperAnnotationBuilder {
     return null;
   }
 
+  // 解析注解@Select、@Insert、@Update、@Delete，跟xml类似，最终封装成一个MappedStatement对象
   void parseStatement(Method method) {
     Class<?> parameterTypeClass = getParameterType(method);
     LanguageDriver languageDriver = getLanguageDriver(method);
@@ -309,6 +312,7 @@ public class MapperAnnotationBuilder {
       Integer timeout = null;
       StatementType statementType = StatementType.PREPARED;
       ResultSetType resultSetType = configuration.getDefaultResultSetType();
+      // 获取注解类型@Select、@Insert、@Update、@Delete
       SqlCommandType sqlCommandType = getSqlCommandType(method);
       boolean isSelect = sqlCommandType == SqlCommandType.SELECT;
       boolean flushCache = !isSelect;

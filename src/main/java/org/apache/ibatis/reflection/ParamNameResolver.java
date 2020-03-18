@@ -112,13 +112,18 @@ public class ParamNameResolver {
    */
   public Object getNamedParams(Object[] args) {
     final int paramCount = names.size();
+    // 如果传参为空
     if (args == null || paramCount == 0) {
       return null;
+    // 如果没有参数注解，且参数数量只有一个
     } else if (!hasParamAnnotation && paramCount == 1) {
       return args[names.firstKey()];
     } else {
+      // 多参数
+      // 用于缓存方法上所有的参数
       final Map<String, Object> param = new ParamMap<>();
       int i = 0;
+      // 遍历方法上所有的参数名称
       for (Map.Entry<Integer, String> entry : names.entrySet()) {
         //names : arg0,arg1
         param.put(entry.getValue(), args[entry.getKey()]);

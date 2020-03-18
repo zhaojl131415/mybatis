@@ -54,23 +54,23 @@ public class XMLStatementBuilder extends BaseBuilder {
   }
   //# $
   public void parseStatementNode() {
+    // 从context中获取id、databaseId
     String id = context.getStringAttribute("id");
     String databaseId = context.getStringAttribute("databaseId");
-
+    // 判断传过来的databaseId和从context中获取的是否匹配，不匹配直接返回
     if (!databaseIdMatchesCurrent(id, databaseId, this.requiredDatabaseId)) {
       return;
     }
 
     String nodeName = context.getNode().getNodeName();
     SqlCommandType sqlCommandType = SqlCommandType.valueOf(nodeName.toUpperCase(Locale.ENGLISH));
+    // 判断是否为select操作
     boolean isSelect = sqlCommandType == SqlCommandType.SELECT;
     //是否刷新缓存 默认值:增删改刷新 查询不刷新
     boolean flushCache = context.getBooleanAttribute("flushCache", !isSelect);
     //是否使用二级缓存 默认值:查询使用 增删改不使用
     boolean useCache = context.getBooleanAttribute("useCache", isSelect);
-    //是否需要处理嵌套查询结果 group by
-
-    // 三组数据 分成一个嵌套的查询结果
+    //是否需要处理嵌套查询结果 group by会封装成一个, 比如三组数据 分成一个嵌套的查询结果
     boolean resultOrdered = context.getBooleanAttribute("resultOrdered", false);
 
     // Include Fragments before parsing
@@ -81,16 +81,16 @@ public class XMLStatementBuilder extends BaseBuilder {
     String parameterType = context.getStringAttribute("parameterType");
     Class<?> parameterTypeClass = resolveClass(parameterType);
 
-    //解析配置的自定义脚本语言驱动 mybatis plus
+    // 解析配置的自定义脚本语言驱动 mybatis plus
     String lang = context.getStringAttribute("lang");
     LanguageDriver langDriver = getLanguageDriver(lang);
 
     // Parse selectKey after includes and remove them.
-    //解析selectKey
+    // 解析selectKey
     processSelectKeyNodes(id, parameterTypeClass, langDriver);
 
     // Parse the SQL (pre: <selectKey> and <include> were parsed and removed)
-    //设置主键自增规则
+    // 设置主键自增规则
     KeyGenerator keyGenerator;
     String keyStatementId = id + SelectKeyGenerator.SELECT_KEY_SUFFIX;
     keyStatementId = builderAssistant.applyCurrentNamespace(keyStatementId, true);
@@ -101,7 +101,10 @@ public class XMLStatementBuilder extends BaseBuilder {
           configuration.isUseGeneratedKeys() && SqlCommandType.INSERT.equals(sqlCommandType))
           ? Jdbc3KeyGenerator.INSTANCE : NoKeyGenerator.INSTANCE;
     }
-    //解析Sql  根据sql文本来判断是否需要动态解析 如果没有动态sql语句且 只有#{}的时候 直接静态解析使用?占位 当有 ${} 不解析
+    /**
+     * 解析Sql：根据sql文本来判断是否需要动态解析
+     * 如果没有动态sql语句且只有#{}的时候，直接静态解析使用?占位；当有${}的时候，不解析
+     */
     SqlSource sqlSource = langDriver.createSqlSource(configuration, context, parameterTypeClass);
     StatementType statementType = StatementType.valueOf(context.getStringAttribute("statementType", StatementType.PREPARED.toString()));
     Integer fetchSize = context.getIntAttribute("fetchSize");

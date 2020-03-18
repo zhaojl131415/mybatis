@@ -89,8 +89,13 @@ public class XMLMapperBuilder extends BaseBuilder {
     this.resource = resource;
   }
 
+  /**
+   * 解析mapper.xml
+   */
   public void parse() {
+    // 判断是否解析过
     if (!configuration.isResourceLoaded(resource)) {
+      // 解析mapper文件里面的节点: resultMap|select|insert|update|delete等
       configurationElement(parser.evalNode("/mapper"));
       configuration.addLoadedResource(resource);
       //绑定Namespace里面的Class对象
@@ -107,8 +112,12 @@ public class XMLMapperBuilder extends BaseBuilder {
     return sqlFragments.get(refid);
   }
 
-  //解析mapper文件里面的节点
-  // 拿到里面配置的配置项 最终封装成一个MapperedStatemanet
+  /**
+   * 解析mapper文件里面的节点
+   * 拿到里面配置的配置项 最终封装成一个MappedStatement
+   *
+   * @param context
+   */
   private void configurationElement(XNode context) {
     try {
       String namespace = context.getStringAttribute("namespace");
@@ -128,6 +137,7 @@ public class XMLMapperBuilder extends BaseBuilder {
   }
 
   private void buildStatementFromContext(List<XNode> list) {
+    // 判断有没有数据库id
     if (configuration.getDatabaseId() != null) {
       buildStatementFromContext(list, configuration.getDatabaseId());
     }
@@ -138,10 +148,11 @@ public class XMLMapperBuilder extends BaseBuilder {
     for (XNode context : list) {
       final XMLStatementBuilder statementParser = new XMLStatementBuilder(configuration, builderAssistant, context, requiredDatabaseId);
       try {
-        //解析xml节点
+        //解析xml节点：sql语句
         statementParser.parseStatementNode();
       } catch (IncompleteElementException e) {
-        //xml语句有问题时 存储到集合中 等解析完能解析的再重新解析
+        // xml语句有问题时 存储到集合中 等解析完能解析的再重新解析
+        // 可能因为解析顺序问题，有些会失败，这些失败的等第一遍解析完在解析一次
         configuration.addIncompleteStatement(statementParser);
       }
     }
