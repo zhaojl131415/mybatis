@@ -81,7 +81,7 @@ public class CachingExecutor implements Executor {
   public <E> List<E> query(MappedStatement ms, Object parameterObject, RowBounds rowBounds, ResultHandler resultHandler) throws SQLException {
     // getBoundSql 如果是${} 参数在这里映射的?  #{}不会处理
     BoundSql boundSql = ms.getBoundSql(parameterObject);
-    // 确定缓存的key 二级缓存
+    // 生成缓存的key 二级缓存
     CacheKey key = createCacheKey(ms, parameterObject, rowBounds, boundSql);
     return query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
   }
@@ -97,16 +97,28 @@ public class CachingExecutor implements Executor {
   @Override
   public <E> List<E> query(MappedStatement ms, Object parameterObject, RowBounds rowBounds, ResultHandler resultHandler, CacheKey key, BoundSql boundSql)
       throws SQLException {
-    //二级缓存的Cache
+    /**
+     * 获取二级缓存的Cache ms可以理解为Mapper
+     * 二级缓存作用域：所有的sqlSession
+     * 二级缓存缓存单位：namespace
+     * 二级缓存对象的默认类型为PerpetualCache，如果配置的缓存是默认类型，则mybatis会根据配置自动追加一系列装饰器。
+     * Cache对象之间的引用顺序为：SynchronizedCache -> LoggingCache –> SerializedCache –> ScheduledCache –> LruCache –> PerpetualCache
+     */
     Cache cache = ms.getCache();
     if (cache != null) {
+      // 是否需要刷新缓存，可配置：<select flushCache="true">，默认增删改刷新，查询不刷新
       flushCacheIfRequired(ms);
+      // 是否使用二级缓存，可配置：<select useCache="false">，默认true
       if (ms.isUseCache() && resultHandler == null) {
+        // 处理存储过程
         ensureNoOutParams(ms, boundSql);
+        // 事务管理器， 从缓存中获取值
         @SuppressWarnings("unchecked")
         List<E> list = (List<E>) tcm.getObject(cache, key);
         if (list == null) {
+          // 如果没有从缓存中获取到值，那么执行查询，将结果集赋值给list
           list = delegate.query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
+          // 把结果集list put到二级缓存中
           tcm.putObject(cache, key, list); // issue #578 and #116
         }
         return list;

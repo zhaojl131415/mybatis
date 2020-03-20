@@ -49,18 +49,27 @@ public class ParamNameResolver {
 
   private boolean hasParamAnnotation;
 
+  /**
+   * 解析Mapper对象中方法的参数名
+   * @param config
+   * @param method
+   */
   public ParamNameResolver(Configuration config, Method method) {
+    // 获取参数类型
     final Class<?>[] paramTypes = method.getParameterTypes();
+    // 获取参数注解
     final Annotation[][] paramAnnotations = method.getParameterAnnotations();
     final SortedMap<Integer, String> map = new TreeMap<>();
     int paramCount = paramAnnotations.length;
-    // get names from @Param annotations
+    // get names from @Param annotations 从@Param注释获取名称
     for (int paramIndex = 0; paramIndex < paramCount; paramIndex++) {
       if (isSpecialParameter(paramTypes[paramIndex])) {
-        // skip special parameters
+        // skip special parameters 跳过特殊参数
         continue;
       }
+      // 参数名
       String name = null;
+      // 遍历参数注解，找到@Param，并将@Param的value赋值给name
       for (Annotation annotation : paramAnnotations[paramIndex]) {
         if (annotation instanceof Param) {
           hasParamAnnotation = true;
@@ -68,12 +77,24 @@ public class ParamNameResolver {
           break;
         }
       }
+      // 如果注解的value没拿到name，再通过反射去拿
       if (name == null) {
-        // @Param was not specified.
-        //Spring MVC 底层调用的不是JDK的API  Spring MVC底层是去解析字节码
-        //在jdk8以前 调用这个getName 会有问题 arg0
-        //jdk8
+        // @Param was not specified. 没有指定@Param。
+        /**
+         * Spring MVC 底层调用的不是JDK的API  Spring MVC底层是去解析class字节码
+         *
+         * 在jdk8以前 调用这个getActualParamName() 会有问题 arg0
+         *
+         * jdk 8且Mybatis必须是3.4.1版本以上
+         * File->Settings->Build,Execution,Deployment->Compiler->Java Compiler 在 Additional command line parameters: 后面填上 -parameters
+         * maven compile
+         *
+         * 官方手册说自Mybatis3.4.1版本后，允许使用方法签名中实际的参数名作为他们的别名，
+         * 也就是说在有个参数的方法中，你不再需要添加@Param注解便可以直接在sql语句中使用参数本身的名字。
+         * 为了使用这个特性，有个很重要的前提：你的项目必须采用Java8编译并且加上 -parameters 选项。
+         */
         if (config.isUseActualParamName()) {
+          // 底层是java反射：Parameter.getName()
           name = getActualParamName(method, paramIndex);
         }
         if (name == null) {

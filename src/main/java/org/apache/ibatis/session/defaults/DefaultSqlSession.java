@@ -145,7 +145,7 @@ public class DefaultSqlSession implements SqlSession {
     try {
       // 初始化xml解析时，每个sql语句封装成MappedStatement，放到map中存起来了，这里就从map中取出来
       MappedStatement ms = configuration.getMappedStatement(statement);
-      // 执行查询
+      // 执行查询：如果打开了二级缓存，CachingExecutor.query()
       return executor.query(ms, wrapCollection(parameter), rowBounds, Executor.NO_RESULT_HANDLER);
     } catch (Exception e) {
       throw ExceptionFactory.wrapException("Error querying database.  Cause: " + e, e);

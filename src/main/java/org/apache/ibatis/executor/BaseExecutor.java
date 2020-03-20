@@ -55,6 +55,7 @@ public abstract class BaseExecutor implements Executor {
   protected Executor wrapper;
 
   protected ConcurrentLinkedQueue<DeferredLoad> deferredLoads;
+  // 一级缓存  装饰者模式
   protected PerpetualCache localCache;
   protected PerpetualCache localOutputParameterCache;
   protected Configuration configuration;
@@ -150,13 +151,17 @@ public abstract class BaseExecutor implements Executor {
     List<E> list;
     try {
       queryStack++;
-      // localCache 一级缓存
+      /**
+       * 从一级缓存中获取结果集
+       * localCache 一级缓存 作用域 单个SqlSession
+       */
       list = resultHandler == null ? (List<E>) localCache.getObject(key) : null;
+      // 如果从一级缓存中获取到结果集
       if (list != null) {
-        //对于存储过程有输出资源的处理
+        // 对于存储过程有输出资源的处理
         handleLocallyCachedOutputParameters(ms, key, parameter, boundSql);
       } else {
-        // 真正开始从数据库查询
+        // 一级缓存中没有获取到，真正开始从数据库查询
         list = queryFromDatabase(ms, parameter, rowBounds, resultHandler, key, boundSql);
       }
     } finally {

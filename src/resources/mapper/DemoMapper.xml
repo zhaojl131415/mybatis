@@ -17,11 +17,10 @@
 
 -->
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper   namespace="com.DemoMapper">
-    <cache
-    ></cache>
+<mapper   namespace="com.DemoMapper" >
+    <cache eviction="" ></cache>
 
-    <select     id="selectAll"    parameterType="String" resultType="Map">
+    <select useCache="false"  flushCache="true"   id="selectAll"    parameterType="String" resultType="Map">
 
         select * from test WHERE id =#{arg0} and 1=${arg0}
 

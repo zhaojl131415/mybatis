@@ -24,6 +24,9 @@ import org.apache.ibatis.cache.Cache;
  * Lru (least recently used) cache decorator.
  *
  * @author Clinton Begin
+ *
+ * 回收原则：
+ *
  */
 public class LruCache implements Cache {
 

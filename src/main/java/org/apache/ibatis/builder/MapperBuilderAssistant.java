@@ -128,15 +128,26 @@ public class MapperBuilderAssistant extends BaseBuilder {
       boolean readWrite,
       boolean blocking,
       Properties props) {
-    //构造器模式
+    // 建造者模式
     Cache cache = new CacheBuilder(currentNamespace)
+        // 建造基础节点
         .implementation(valueOrDefault(typeClass, PerpetualCache.class))
+        // 添加装饰节点
         .addDecorator(valueOrDefault(evictionClass, LruCache.class))
+        // 配置了flushInterval属性才装饰ScheduledCache
         .clearInterval(flushInterval)
         .size(size)
+        // 装饰SerializedCache
         .readWrite(readWrite)
+        // 装饰BlockingCache
         .blocking(blocking)
         .properties(props)
+        /**
+         * 方法调用链
+         * org.apache.ibatis.mapping.CacheBuilder#build()
+         * org.apache.ibatis.mapping.CacheBuilder#setStandardDecorators(org.apache.ibatis.cache.Cache)
+         * 根据配置的属性：装饰对应的Cache
+         */
         .build();
     configuration.addCache(cache);
     currentCache = cache;

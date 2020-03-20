@@ -27,7 +27,8 @@ import org.apache.ibatis.cache.CacheException;
 public class PerpetualCache implements Cache {
 
 
-  //namespace
+  // 一级缓存：单机服务缓存，namespace：<mapper namespace="com.DemoMapper" >
+  // 二级缓存：分布式缓存：EHCache、redis，一般用于不怎么要改的数据
   private final String id;
 
   private Map<Object, Object> cache = new HashMap<>();

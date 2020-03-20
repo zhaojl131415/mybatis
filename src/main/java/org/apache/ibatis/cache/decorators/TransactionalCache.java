@@ -38,14 +38,14 @@ import org.apache.ibatis.logging.LogFactory;
 public class TransactionalCache implements Cache {
 
   private static final Log log = LogFactory.getLog(TransactionalCache.class);
-  //缓存对象
+  // 缓存对象
   private final Cache delegate;
-  //是否需要清空提交空间的标识
+  // 是否需要清空待提交空间的标识
   private boolean clearOnCommit;
-  //所有待提交的缓存
+  // 本地缓存区：所有待提交的缓存
   private final Map<Object, Object> entriesToAddOnCommit;
-  //错误修改
-  //未命中的缓存集合，用于统计缓存命中率
+  // 错误修改
+  // 未命中的缓存集合，用于统计缓存命中率，防止缓存穿透：防止一个为null的key一直访问数据库
   private final Set<Object> entriesMissedInCache;
 
 
@@ -75,6 +75,7 @@ public class TransactionalCache implements Cache {
       entriesMissedInCache.add(key);
     }
     // issue #146
+    // 如果为true，表示是需要清空的，可能是事务失败，回滚，所以返回null
     if (clearOnCommit) {
       return null;
     } else {
@@ -83,8 +84,11 @@ public class TransactionalCache implements Cache {
   }
 
 
-  //本来应该put到缓存里面去
-  //put需要提交的空间里面去
+  /**
+   * 本来应该put到缓存里面去，这里先put到需要待提交的空间里面去
+   * @param key Can be any object but usually it is a {@link CacheKey}
+   * @param object
+   */
   @Override
   public void putObject(Object key, Object object) {
     entriesToAddOnCommit.put(key, object);
@@ -105,6 +109,7 @@ public class TransactionalCache implements Cache {
     if (clearOnCommit) {
       delegate.clear();
     }
+    // 把待提交的缓存刷到真是缓存去
     flushPendingEntries();
     reset();
   }
@@ -114,13 +119,18 @@ public class TransactionalCache implements Cache {
     reset();
   }
 
+  // 重置
   private void reset() {
     clearOnCommit = false;
+    // 清空待提交缓存
     entriesToAddOnCommit.clear();
+    // 清空未命中缓存
     entriesMissedInCache.clear();
   }
 
+  // 刷新待提交缓存到真实缓存
   private void flushPendingEntries() {
+    // 遍历待提交空间的缓存
     for (Map.Entry<Object, Object> entry : entriesToAddOnCommit.entrySet()) {
       //put到真实缓存
       delegate.putObject(entry.getKey(), entry.getValue());
