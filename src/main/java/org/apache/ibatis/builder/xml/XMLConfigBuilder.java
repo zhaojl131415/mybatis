@@ -171,12 +171,23 @@ public class XMLConfigBuilder extends BaseBuilder {
    * @param parent
    */
   private void typeAliasesElement(XNode parent) {
+    // 如果xml中配置了typeAliases
     if (parent != null) {
       for (XNode child : parent.getChildren()) {
         if ("package".equals(child.getName())) {
+          /**
+           * <typeAliases>
+           *   <package name="" />
+           * </typeAliases>
+           */
           String typeAliasPackage = child.getStringAttribute("name");
           configuration.getTypeAliasRegistry().registerAliases(typeAliasPackage);
         } else {
+          /**
+           *   <typeAliases>
+           *     <typeAlias type="" alias="" />
+           *   </typeAliases>
+           */
           // 别名名称：UserMapper
           String alias = child.getStringAttribute("alias");
           // 对应类型：com.zhao.mapper.UserMapper
@@ -376,33 +387,52 @@ public class XMLConfigBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * 解析mappers节点
+   * 在这一步还会解析mapper中配置的mapper.xml的节点（命名空间、parameterMap、resultMap、select、Insert、Update、Delete等）
+   * @param parent
+   * @throws Exception
+   */
   private void mapperElement(XNode parent) throws Exception {
     if (parent != null) {
       //遍历解析mappers节点
       for (XNode child : parent.getChildren()) {
-        //首先解析package节点  到底是解析注解还是解析xml
+        /**
+         *   <mappers>
+         *     <package name="" />
+         *   </mappers>
+         *   首先解析package节点  到底是解析注解还是解析xml
+         */
         if ("package".equals(child.getName())) {
           String mapperPackage = child.getStringAttribute("name");
           configuration.addMappers(mapperPackage);
         } else {
-          //三个值都可以指定mapper地址，只能有一个值是有值的，否则抛异常
+          /**
+           *   <mappers>
+           *     <mapper resource="mapper/DemoMapper.xml"/>
+           *   </mappers>
+           *
+           *   resource/url/class 三个值都可以指定mapper地址，
+           *   只能有一个值是有值的，否则抛异常 优先级：resource、url、class
+           *
+           */
           String resource = child.getStringAttribute("resource");
           String url = child.getStringAttribute("url");
           String mapperClass = child.getStringAttribute("class");
-          // 如果resource不为空
+          // 如果只有resource不为空
           if (resource != null && url == null && mapperClass == null) {
             ErrorContext.instance().resource(resource);
             InputStream inputStream = Resources.getResourceAsStream(resource);
             // 解析resource.xml
             XMLMapperBuilder mapperParser = new XMLMapperBuilder(inputStream, configuration, resource, configuration.getSqlFragments());
             mapperParser.parse();
-          // 如果url不为空
+          // 如果只有url不为空
           } else if (resource == null && url != null && mapperClass == null) {
             ErrorContext.instance().resource(url);
             InputStream inputStream = Resources.getUrlAsStream(url);
             XMLMapperBuilder mapperParser = new XMLMapperBuilder(inputStream, configuration, url, configuration.getSqlFragments());
             mapperParser.parse();
-          // 如果mapperClass不为空
+          // 如果只有mapperClass不为空
           } else if (resource == null && url == null && mapperClass != null) {
             Class<?> mapperInterface = Resources.classForName(mapperClass);
             configuration.addMapper(mapperInterface);

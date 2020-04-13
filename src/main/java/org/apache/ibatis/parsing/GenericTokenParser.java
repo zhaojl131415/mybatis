@@ -75,6 +75,12 @@ public class GenericTokenParser {
           builder.append(src, start, src.length - start);
           offset = src.length;
         } else {
+          // 初始化阶段：预编译
+          // 调用：org.apache.ibatis.scripting.xmltags.TextSqlNode.DynamicCheckerTokenParser.handleToken：对sql不做处理，只修改了isDynamic为true
+          // 调用：org.apache.ibatis.builder.SqlSourceBuilder.ParameterMappingTokenHandler.handleToken：把#{}替换成 ?
+          // 运行阶段：
+          // 调用：org.apache.ibatis.scripting.xmltags.TextSqlNode.BindingTokenParser.handleToken：字符串替换：将${id}直接替换成参数值
+          // 至于以上方法，具体会调用哪个解析器，看当前GenericTokenParser对象通过构造函数实例化时传入的handler参数
           builder.append(handler.handleToken(expression.toString()));
           offset = end + closeToken.length();
         }

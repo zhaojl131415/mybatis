@@ -77,12 +77,14 @@ public class DefaultParameterHandler implements ParameterHandler {
           } else if (typeHandlerRegistry.hasTypeHandler(parameterObject.getClass())) {
             value = parameterObject;
           } else {
+            // Mapper.java中的parameterObject：参数对象
             MetaObject metaObject = configuration.newMetaObject(parameterObject);
             // 这里底层是通过反射去Mapper.java类拿值
             value = metaObject.getValue(propertyName);
           }
 
           TypeHandler typeHandler = parameterMapping.getTypeHandler();
+          // 获取参数的JDBC类型 String -> varchar
           JdbcType jdbcType = parameterMapping.getJdbcType();
           if (value == null && jdbcType == null) {
             jdbcType = configuration.getJdbcTypeForNull();

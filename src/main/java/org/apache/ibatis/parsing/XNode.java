@@ -226,6 +226,12 @@ public class XNode {
     return getBooleanAttribute(name, null);
   }
 
+  /**
+   * 判断是否配置Attribute属性：如果没配置，使用默认值
+   * @param name 属性值
+   * @param def 默认值
+   * @return
+   */
   public Boolean getBooleanAttribute(String name, Boolean def) {
     String value = attributes.getProperty(name);
     if (value == null) {

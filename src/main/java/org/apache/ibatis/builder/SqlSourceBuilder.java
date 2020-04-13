@@ -62,8 +62,12 @@ public class SqlSourceBuilder extends BaseBuilder {
       return parameterMappings;
     }
 
-      //目前为止只是在解析xml
-    //全局扫描#{id} 字符串之后  会把里面所有 #{} 调用handleToken 替换为?
+    /**
+     * 目前为止只是在解析xml
+     * 全局扫描 #{id} 字符串之后  GenericTokenParser.parse方法会调用此方法handleToken() 把里面所有 #{} 替换为 ?
+     * @param content
+     * @return
+     */
     @Override
     public String handleToken(String content) {
       parameterMappings.add(buildParameterMapping(content));

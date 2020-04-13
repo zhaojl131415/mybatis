@@ -21,7 +21,7 @@ import java.util.Map;
 public class TestObjcet {
 
 
-  public  void test(String name){
+  public  void test(){
 
   }
 
@@ -37,15 +37,20 @@ public class TestObjcet {
 
   public static void main(String[] args) throws Exception{
 
-    TestObjcet testObjcet = new TestObjcet();
-    TestObjcet testObjcet1 = new TestObjcet();
-    System.out.println(testObjcet.equals(testObjcet1));
-    System.out.println(testObjcet.hashCode());
-    System.out.println(testObjcet1.hashCode());
-    Map map = new HashMap();
-    map.put(testObjcet,"1");
+//    TestObjcet testObjcet = new TestObjcet();
+    System.out.println(TestObjcet.class.getMethod("equals", Object.class).getDeclaringClass());
+    System.out.println(TestObjcet.class.getMethod("hashCode", Object.class).getDeclaringClass());
+    System.out.println(TestObjcet.class.getMethod("test").getDeclaringClass());
 
-    System.out.println(map.get(testObjcet1));
+
+//    TestObjcet testObjcet1 = new TestObjcet();
+//    System.out.println(testObjcet.equals(testObjcet1));
+//    System.out.println(testObjcet.hashCode());
+//    System.out.println(testObjcet1.hashCode());
+//    Map map = new HashMap();
+//    map.put(testObjcet,"1");
+//
+//    System.out.println(map.get(testObjcet1));
 
   }
 }

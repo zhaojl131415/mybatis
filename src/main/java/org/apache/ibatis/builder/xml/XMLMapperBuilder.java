@@ -95,16 +95,23 @@ public class XMLMapperBuilder extends BaseBuilder {
   public void parse() {
     // 判断是否解析过
     if (!configuration.isResourceLoaded(resource)) {
-      // 解析mapper文件里面的节点: resultMap|select|insert|update|delete等
+      // 解析mapper.xml文件里面的节点: resultMap|select|insert|update|delete等
       configurationElement(parser.evalNode("/mapper"));
       configuration.addLoadedResource(resource);
       //绑定Namespace里面的Class对象
       bindMapperForNamespace();
     }
 
-    //重新解析之前解析不了的节点
+
+    /**
+     * 重新解析之前解析不了的节点
+     * 本方法内调用了configurationElement()方法, 这里缓存了解析出错的内容，需要重新解析
+     */
+    // 重新解析其中org.apache.ibatis.builder.xml.XMLMapperBuilder.resultMapElements()缓存的解析出错的内容
     parsePendingResultMaps();
+    // 重新解析其中org.apache.ibatis.builder.xml.XMLMapperBuilder.cacheRefElement()缓存的解析出错的内容
     parsePendingCacheRefs();
+    // 重新解析其中org.apache.ibatis.builder.xml.XMLMapperBuilder.buildStatementFromContext()缓存的解析出错的内容
     parsePendingStatements();
   }
 
@@ -113,7 +120,7 @@ public class XMLMapperBuilder extends BaseBuilder {
   }
 
   /**
-   * 解析mapper文件里面的节点
+   * 解析mapper.xml文件里面的节点
    * 拿到里面配置的配置项 最终封装成一个MappedStatement
    *
    * @param context
@@ -128,9 +135,13 @@ public class XMLMapperBuilder extends BaseBuilder {
       cacheRefElement(context.evalNode("cache-ref"));
       // 解析缓存
       cacheElement(context.evalNode("cache"));
+      // 解析parameterMap
       parameterMapElement(context.evalNodes("/mapper/parameterMap"));
+      // 解析resultMap
       resultMapElements(context.evalNodes("/mapper/resultMap"));
+      // 解析sql
       sqlElement(context.evalNodes("/mapper/sql"));
+      // 解析select|insert|update|delete，并封装MappedStatement
       buildStatementFromContext(context.evalNodes("select|insert|update|delete"));
     } catch (Exception e) {
       throw new BuilderException("Error parsing Mapper XML. The XML location is '" + resource + "'. Cause: " + e, e);
@@ -146,6 +157,7 @@ public class XMLMapperBuilder extends BaseBuilder {
   }
 
   private void buildStatementFromContext(List<XNode> list, String requiredDatabaseId) {
+    // 遍历select|insert|update|delete标签节点
     for (XNode context : list) {
       final XMLStatementBuilder statementParser = new XMLStatementBuilder(configuration, builderAssistant, context, requiredDatabaseId);
       try {
@@ -153,7 +165,7 @@ public class XMLMapperBuilder extends BaseBuilder {
         statementParser.parseStatementNode();
       } catch (IncompleteElementException e) {
         // xml语句有问题时 存储到集合中 等解析完能解析的再重新解析
-        // 可能因为解析顺序问题，有些会失败，这些失败的等第一遍解析完在解析一次
+        // 可能因为解析顺序问题，有些会失败，这些失败的等第一遍解析完后再解析一次
         configuration.addIncompleteStatement(statementParser);
       }
     }
@@ -236,6 +248,10 @@ public class XMLMapperBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * 解析parameterMap
+   * @param list
+   */
   private void parameterMapElement(List<XNode> list) {
     for (XNode parameterMapNode : list) {
       String id = parameterMapNode.getStringAttribute("id");
@@ -253,7 +269,7 @@ public class XMLMapperBuilder extends BaseBuilder {
         Integer numericScale = parameterNode.getIntAttribute("numericScale");
         ParameterMode modeEnum = resolveParameterMode(mode);
         Class<?> javaTypeClass = resolveClass(javaType);
-        //String  --> varchar
+        // 解析数据库字段类型：String  --> varchar
         JdbcType jdbcTypeEnum = resolveJdbcType(jdbcType);
         Class<? extends TypeHandler<?>> typeHandlerClass = resolveClass(typeHandler);
         ParameterMapping parameterMapping = builderAssistant.buildParameterMapping(parameterClass, property, javaTypeClass, jdbcTypeEnum, resultMap, modeEnum, typeHandlerClass, numericScale);
@@ -283,6 +299,7 @@ public class XMLMapperBuilder extends BaseBuilder {
         resultMapNode.getStringAttribute("ofType",
             resultMapNode.getStringAttribute("resultType",
                 resultMapNode.getStringAttribute("javaType"))));
+    // 可以配置别名，这里可以去别名库匹配
     Class<?> typeClass = resolveClass(type);
     if (typeClass == null) {
       typeClass = inheritEnclosingType(resultMapNode, enclosingType);
@@ -359,6 +376,18 @@ public class XMLMapperBuilder extends BaseBuilder {
     return builderAssistant.buildDiscriminator(resultType, column, javaTypeClass, jdbcTypeEnum, typeHandlerClass, discriminatorMap);
   }
 
+  /**
+   * 解析sql标签
+   * <sql id="columnName">
+   *     id, name, age
+   *   </sql>
+   * 一般通过如下方式使用：
+   *   <select id="selectUser">
+   *     select <include refid="columnName" /> from user
+   *   </select>
+   *  但此处只是解析sql标签，并不组装select中的sql
+   * @param list
+   */
   private void sqlElement(List<XNode> list) {
     if (configuration.getDatabaseId() != null) {
       sqlElement(list, configuration.getDatabaseId());
@@ -457,6 +486,7 @@ public class XMLMapperBuilder extends BaseBuilder {
           // to prevent loading again this resource from the mapper interface
           // look at MapperAnnotationBuilder#loadXmlResource
           configuration.addLoadedResource("namespace:" + namespace);
+
           configuration.addMapper(boundType);
         }
       }

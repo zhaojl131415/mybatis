@@ -70,11 +70,11 @@ public class SimpleExecutor extends BaseExecutor {
     try {
       // 获取配置对象（包括数据库连接），解析xml时的配置信息时存入
       Configuration configuration = ms.getConfiguration();
-      // PreparedStatement
+      // 初始化PreparedStatement
       StatementHandler handler = configuration.newStatementHandler(wrapper, ms, parameter, rowBounds, resultHandler, boundSql);
-      // 关键步骤，类比jdbc
+      // 关键步骤，类比jdbc 这一步传参已经赋上值了
       stmt = prepareStatement(handler, ms.getStatementLog());
-      // ResultSet resultSet = preparedStatement.executeQuery();
+      // 类比：ResultSet resultSet = preparedStatement.executeQuery();
       return handler.query(stmt, resultHandler);
     } finally {
       closeStatement(stmt);
