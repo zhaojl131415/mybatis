@@ -136,7 +136,7 @@ public class ParamNameResolver {
     // 如果传参为空
     if (args == null || paramCount == 0) {
       return null;
-    // 如果没有参数注解，且参数数量只有一个
+    // 如果没有参数注解@Param("id")，且参数数量只有一个
     } else if (!hasParamAnnotation && paramCount == 1) {
       return args[names.firstKey()];
     } else {
@@ -146,9 +146,9 @@ public class ParamNameResolver {
       int i = 0;
       // 遍历方法上所有的参数名称
       for (Map.Entry<Integer, String> entry : names.entrySet()) {
-        //names : arg0,arg1
+        // jdk获取参数的问题，需要File | Settings | Build, Execution, Deployment | Compiler | Java Compiler中配置-parameters：names : arg0,arg1
         param.put(entry.getValue(), args[entry.getKey()]);
-        // add generic param names (param1, param2, ...)
+        // 添加通用参数名称 add generic param names (param1, param2, ...)
         final String genericParamName = GENERIC_NAME_PREFIX + String.valueOf(i + 1);
         // ensure not to overwrite parameter named with @Param
         if (!names.containsValue(genericParamName)) {

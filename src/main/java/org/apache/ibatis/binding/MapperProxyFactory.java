@@ -47,6 +47,7 @@ public class MapperProxyFactory<T> {
     return (T) Proxy.newProxyInstance(mapperInterface.getClassLoader(), new Class[] { mapperInterface }, mapperProxy);
   }
 
+  // 返回动态代理类，调用其方法，实际会调用到MapperProxy.invoke()方法
   public T newInstance(SqlSession sqlSession) {
     // Mapper代理，代理逻辑在这个类里, 实现了InvocationHandler接口
     final MapperProxy<T> mapperProxy = new MapperProxy<>(sqlSession, mapperInterface, methodCache);

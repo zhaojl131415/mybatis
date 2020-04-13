@@ -20,6 +20,13 @@
 <mapper namespace="com.DemoMapper">
     <cache eviction="" ></cache>
 
+  <sql id="columnName">
+    id, name, age
+  </sql>
+  <select id="selectUser">
+    select <include refid="columnName" /> from user
+  </select>
+
     <select useCache="false"  flushCache="true"   id="selectAll"    parameterType="String" resultType="Map">
 
         select * from test WHERE id =#{arg0} and 1=${arg0}

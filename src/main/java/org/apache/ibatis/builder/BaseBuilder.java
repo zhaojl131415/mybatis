@@ -113,6 +113,7 @@ public abstract class BaseBuilder {
       return null;
     }
     try {
+      // 解析别名
       return resolveAlias(alias);
     } catch (Exception e) {
       throw new BuilderException("Error resolving class. Cause: " + e, e);

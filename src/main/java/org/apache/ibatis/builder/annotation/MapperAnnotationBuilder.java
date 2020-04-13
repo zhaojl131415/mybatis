@@ -122,10 +122,11 @@ public class MapperAnnotationBuilder {
     this.configuration = configuration;
     this.type = type;
   }
-  //解析Mapper对象
+
+  // 解析添加了@Mapper注解的对象
   public void parse() {
     String resource = type.toString();
-    //如果之前解析了xml  这里就不会在解析了
+    //如果之前解析了xml  这里就不会再解析了
     if (!configuration.isResourceLoaded(resource)) {
 
       loadXmlResource();
@@ -170,11 +171,14 @@ public class MapperAnnotationBuilder {
     // to prevent loading again a resource twice
     // this flag is set at XMLMapperBuilder#bindMapperForNamespace
     if (!configuration.isResourceLoaded("namespace:" + type.getName())) {
+      // 根据@Mapper对象的文件名替换成对应的xml文件
       String xmlResource = type.getName().replace('.', '/') + ".xml";
       // #1347
+      // 在@Mapper对象的文件目录下查找对应的xml文件
       InputStream inputStream = type.getResourceAsStream("/" + xmlResource);
       if (inputStream == null) {
         // Search XML mapper that is not in the module but in the classpath.
+        // 在classpath目录下查找对应的xml文件
         try {
           inputStream = Resources.getResourceAsStream(type.getClassLoader(), xmlResource);
         } catch (IOException e2) {
@@ -183,6 +187,7 @@ public class MapperAnnotationBuilder {
       }
       if (inputStream != null) {
         XMLMapperBuilder xmlParser = new XMLMapperBuilder(inputStream, assistant.getConfiguration(), xmlResource, configuration.getSqlFragments(), type.getName());
+        // 解析mapper.xml
         xmlParser.parse();
       }
     }
@@ -315,12 +320,15 @@ public class MapperAnnotationBuilder {
       // 获取注解类型@Select、@Insert、@Update、@Delete
       SqlCommandType sqlCommandType = getSqlCommandType(method);
       boolean isSelect = sqlCommandType == SqlCommandType.SELECT;
+      // 非查询操作刷新缓存
       boolean flushCache = !isSelect;
+      // 查询操作使用缓存
       boolean useCache = isSelect;
 
       KeyGenerator keyGenerator;
       String keyProperty = null;
       String keyColumn = null;
+      // insert/update
       if (SqlCommandType.INSERT.equals(sqlCommandType) || SqlCommandType.UPDATE.equals(sqlCommandType)) {
         // first check for SelectKey annotation - that overrides everything else
         SelectKey selectKey = method.getAnnotation(SelectKey.class);

@@ -52,12 +52,12 @@ public class Test {
 
     //从调用者角度来讲 与数据库打交道的对象 SqlSession
     //通过动态代理 去帮我们执行SQL
-    //拿到一个动态代理后的Mapper
+    // 拿到一个动态代理后的mapper，
     DemoMapper mapper = sqlSession.getMapper(DemoMapper.class);
     Map<String,Object> map = new HashMap<>();
     map.put("id","1");
     //因为一级缓存 这里不会调用两次SQL，
-    // 这里就相当于是调用动态代理的invoke方法
+    // 这里就相当于是调用动态代理(MapperProxy)的invoke方法
     System.out.println(mapper.selectAll("1", "1"));
     //如果有二级缓存 这里就不会调用两次SQL
     //当调用 sqlSession.close() 或者说刷新缓存方法， 或者说配置了定时清空缓存方法  都会销毁缓存

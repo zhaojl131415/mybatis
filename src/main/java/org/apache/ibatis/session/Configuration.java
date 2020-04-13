@@ -590,7 +590,7 @@ public class Configuration {
 
   public StatementHandler newStatementHandler(Executor executor, MappedStatement mappedStatement, Object parameterObject, RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql) {
     StatementHandler statementHandler = new RoutingStatementHandler(executor, mappedStatement, parameterObject, rowBounds, resultHandler, boundSql);
-    // 代理StatementHandler 用插件去代理
+    // 用插件去代理StatementHandler对象
     statementHandler = (StatementHandler) interceptorChain.pluginAll(statementHandler);
     return statementHandler;
   }
@@ -772,10 +772,21 @@ public class Configuration {
     mapperRegistry.addMappers(packageName);
   }
 
+  /**
+   * 注册Mapper
+   * 添加到knownMappers对象中，可以在后续根据class找到对应的Mapper，生成动态代理对象，调用方法执行相应内容
+   * @param type
+   * @param <T>
+   */
   public <T> void addMapper(Class<T> type) {
     mapperRegistry.addMapper(type);
   }
 
+  /**
+   * 根据class去knownMappers找到对应的Mapper，生成动态代理对象
+   * @param type
+   * @param <T>
+   */
   public <T> T getMapper(Class<T> type, SqlSession sqlSession) {
     return mapperRegistry.getMapper(type, sqlSession);
   }

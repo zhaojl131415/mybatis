@@ -52,7 +52,7 @@ public class XMLStatementBuilder extends BaseBuilder {
     this.context = context;
     this.requiredDatabaseId = databaseId;
   }
-  //# $
+  // 解析sql：# $
   public void parseStatementNode() {
     // 从context中获取id、databaseId
     String id = context.getStringAttribute("id");
@@ -61,27 +61,34 @@ public class XMLStatementBuilder extends BaseBuilder {
     if (!databaseIdMatchesCurrent(id, databaseId, this.requiredDatabaseId)) {
       return;
     }
-
+    // 获取当前节点名称：select|insert|update|delete
     String nodeName = context.getNode().getNodeName();
+    // 将节点转化为大写，并通过枚举匹配对应命令
     SqlCommandType sqlCommandType = SqlCommandType.valueOf(nodeName.toUpperCase(Locale.ENGLISH));
     // 判断是否为select操作
     boolean isSelect = sqlCommandType == SqlCommandType.SELECT;
-    //是否刷新缓存 默认值:增删改刷新 查询不刷新
+    /**
+     * 是否刷新缓存
+     * context.getBooleanAttribute 判断是否配置Attribute属性：如果没配置，使用默认值
+     * !isSelect 表示是否为查询查询操作，如果是操作这里返回false，否则返回true，也就是说增删改刷新缓存 查询不刷新缓存
+     */
     boolean flushCache = context.getBooleanAttribute("flushCache", !isSelect);
-    //是否使用二级缓存 默认值:查询使用 增删改不使用
+    // 是否使用二级缓存 默认值:查询使用 增删改不使用
     boolean useCache = context.getBooleanAttribute("useCache", isSelect);
-    //是否需要处理嵌套查询结果 group by会封装成一个, 比如三组数据 分成一个嵌套的查询结果
+    // 是否需要处理嵌套查询结果
+    // group by会封装成一个,
+    // 比如三组数据 分成一个嵌套的查询结果
     boolean resultOrdered = context.getBooleanAttribute("resultOrdered", false);
 
     // Include Fragments before parsing
     XMLIncludeTransformer includeParser = new XMLIncludeTransformer(configuration, builderAssistant);
-    //替换Includes标签为对应的sql标签里面的值
+    // 替换Includes标签为对应的sql标签里面的值: <include refid="columnName" />
     includeParser.applyIncludes(context.getNode());
 
     String parameterType = context.getStringAttribute("parameterType");
     Class<?> parameterTypeClass = resolveClass(parameterType);
 
-    // 解析配置的自定义脚本语言驱动 mybatis plus
+    // 解析配置的自定义脚本语言驱动: mybatis plus实现
     String lang = context.getStringAttribute("lang");
     LanguageDriver langDriver = getLanguageDriver(lang);
 
@@ -104,6 +111,9 @@ public class XMLStatementBuilder extends BaseBuilder {
     /**
      * 解析Sql：根据sql文本来判断是否需要动态解析
      * 如果没有动态sql语句且只有#{}的时候，直接静态解析使用?占位；当有${}的时候，不解析
+     *
+     * org.apache.ibatis.scripting.xmltags.XMLLanguageDriver#createSqlSource(org.apache.ibatis.session.Configuration, org.apache.ibatis.parsing.XNode, java.lang.Class)
+     * org.apache.ibatis.scripting.xmltags.XMLScriptBuilder#parseScriptNode()
      */
     SqlSource sqlSource = langDriver.createSqlSource(configuration, context, parameterTypeClass);
     StatementType statementType = StatementType.valueOf(context.getStringAttribute("statementType", StatementType.PREPARED.toString()));

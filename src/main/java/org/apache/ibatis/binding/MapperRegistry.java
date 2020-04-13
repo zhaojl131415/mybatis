@@ -42,13 +42,13 @@ public class MapperRegistry {
 
   @SuppressWarnings("unchecked")
   public <T> T getMapper(Class<T> type, SqlSession sqlSession) {
-    // knownMappers解析xml的时候存进去的
+    // knownMappers解析xml的时候存进去的，通过class获取代理工厂
     final MapperProxyFactory<T> mapperProxyFactory = (MapperProxyFactory<T>) knownMappers.get(type);
     if (mapperProxyFactory == null) {
       throw new BindingException("Type " + type + " is not known to the MapperRegistry.");
     }
     try {
-      // 真正动态代理生成一个对象
+      // 通过代理工厂真正生成一个动态代理对象
       return mapperProxyFactory.newInstance(sqlSession);
     } catch (Exception e) {
       throw new BindingException("Error getting mapper instance. Cause: " + e, e);
@@ -68,11 +68,12 @@ public class MapperRegistry {
       }
       boolean loadCompleted = false;
       try {
+        // 缓存已经解析好的mapper，代理工厂用于后续生成动态代理对象
         knownMappers.put(type, new MapperProxyFactory<>(type));
         // It's important that the type is added before the parser is run
         // otherwise the binding may automatically be attempted by the
         // mapper parser. If the type is already known, it won't try.
-        // 解析@Mapper
+        // 解析添加了@Mapper注解的对象
         MapperAnnotationBuilder parser = new MapperAnnotationBuilder(config, type);
         parser.parse();
         loadCompleted = true;

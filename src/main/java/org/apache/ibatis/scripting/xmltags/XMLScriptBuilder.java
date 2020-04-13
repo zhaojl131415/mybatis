@@ -64,7 +64,7 @@ public class XMLScriptBuilder extends BaseBuilder {
   }
 
   public SqlSource parseScriptNode() {
-    //# $
+    //判断文本中是否包含# $，表示是否为动态sql
     MixedSqlNode rootSqlNode = parseDynamicTags(context);
     SqlSource sqlSource;
     if (isDynamic) {
@@ -72,6 +72,11 @@ public class XMLScriptBuilder extends BaseBuilder {
       sqlSource = new DynamicSqlSource(configuration, rootSqlNode);
     } else {
       // 用占位符?方式来解析  解析#{}
+      /**
+       * org.apache.ibatis.scripting.defaults.RawSqlSource#RawSqlSource(org.apache.ibatis.session.Configuration, org.apache.ibatis.scripting.xmltags.SqlNode, java.lang.Class<?>)
+       * org.apache.ibatis.scripting.defaults.RawSqlSource#RawSqlSource(org.apache.ibatis.session.Configuration, java.lang.String, java.lang.Class<?>)
+       * org.apache.ibatis.builder.SqlSourceBuilder#parse
+       */
       sqlSource = new RawSqlSource(configuration, rootSqlNode, parameterType);
     }
     return sqlSource;
@@ -82,10 +87,11 @@ public class XMLScriptBuilder extends BaseBuilder {
     NodeList children = node.getNode().getChildNodes();
     for (int i = 0; i < children.getLength(); i++) {
       XNode child = node.newXNode(children.item(i));
-      // 纯文本
+      // 判断节点类型
       if (child.getNode().getNodeType() == Node.CDATA_SECTION_NODE || child.getNode().getNodeType() == Node.TEXT_NODE) {
         String data = child.getStringBody("");
         TextSqlNode textSqlNode = new TextSqlNode(data);
+        // 判断sql是否为动态sql ${  }
         if (textSqlNode.isDynamic()) {
           contents.add(textSqlNode);
           isDynamic = true;
@@ -98,6 +104,7 @@ public class XMLScriptBuilder extends BaseBuilder {
         if (handler == null) {
           throw new BuilderException("Unknown element <" + nodeName + "> in SQL statement.");
         }
+        //
         handler.handleNode(child, contents);
         isDynamic = true;
       }

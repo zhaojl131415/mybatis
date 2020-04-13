@@ -32,7 +32,7 @@ public interface DemoMapper {
   // arg0 arg1 arg2
   public List<Map<String,Object>>  selectAll( String name,String age);
 
-  public void insert(String name,String age);
+  public void insert( String name,String age);
 
   default void test(){
     System.out.println(111);

@@ -141,11 +141,11 @@ public class MapperMethod {
 
   private <E> Object executeForMany(SqlSession sqlSession, Object[] args) {
     List<E> result;
-    // 获取传参
+    // 获取传参：转换参数为sql命令参数
     Object param = method.convertArgsToSqlCommandParam(args);
     // 判断是否有分页
     if (method.hasRowBounds()) {
-      // 如果有分页
+      // 如果有分页, 很少用，把数据查出来用内存分页
       RowBounds rowBounds = method.extractRowBounds(args);
       result = sqlSession.selectList(command.getName(), param, rowBounds);
     } else {
@@ -311,6 +311,7 @@ public class MapperMethod {
     }
 
     public Object convertArgsToSqlCommandParam(Object[] args) {
+      // 参数名解析器
       return paramNameResolver.getNamedParams(args);
     }
 

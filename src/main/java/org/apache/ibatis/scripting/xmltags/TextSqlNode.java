@@ -38,10 +38,17 @@ public class TextSqlNode implements SqlNode {
     this.injectionFilter = injectionFilter;
   }
 
+  /**
+   * 判读是否为动态sql：${  }
+   * @return
+   */
   public boolean isDynamic() {
     DynamicCheckerTokenParser checker = new DynamicCheckerTokenParser();
+    // "${  }"
     GenericTokenParser parser = createParser(checker);
+    // 方法中调用org.apache.ibatis.scripting.xmltags.TextSqlNode.DynamicCheckerTokenParser.handleToken()方法：将isDynamic设置为true，没有其他操作
     parser.parse(text);
+    // 返回isDynamic
     return checker.isDynamic();
   }
 
@@ -67,9 +74,12 @@ public class TextSqlNode implements SqlNode {
     }
 
 
-    // 吧某个值复为true
-    //吧#{} 变成？
-    //${ }  id   id-->1    "1"   int  #{}
+    /**
+     * 字符串替换：将${id}直接替换成参数值，不做参数类型检查和转换，
+     * 如果传参为String，但数据库字段为int，会报错。
+     * @param content
+     * @return
+     */
     @Override
     public String handleToken(String content) {
       Object parameter = context.getBindings().get("_parameter");

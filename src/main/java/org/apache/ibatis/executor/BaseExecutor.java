@@ -342,10 +342,10 @@ public abstract class BaseExecutor implements Executor {
 
   private <E> List<E> queryFromDatabase(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, CacheKey key, BoundSql boundSql) throws SQLException {
     List<E> list;
-    // 一级缓存，先put个占位符进去，保证get时不为空，减少资源竞争
+    // 一级缓存，先put个占位符进去，保证get时不为空，减少资源竞争，减少并发读取数据库
     localCache.putObject(key, EXECUTION_PLACEHOLDER);
     try {
-      // 查询
+      // 查询 org.apache.ibatis.executor.SimpleExecutor.doQuery
       list = doQuery(ms, parameter, rowBounds, resultHandler, boundSql);
     } finally {
       // 移除key
