@@ -39,7 +39,7 @@ public class Test {
 
   public static void main(String[] args) throws Exception {
     String resource = "mybatis.xml";
-    InputStream inputStream = Resources.getResourceAsStream(resource);
+    InputStream inputStream = Resources.getResourceAsStream("mybatis.xml");
     //xml解析完成
     //其实我们mybatis初始化方法 除了XML意外 其实也可以0xml完成
 //   new SqlSessionFactoryBuilder().b

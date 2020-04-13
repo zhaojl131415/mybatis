@@ -30,14 +30,24 @@ public final class LogFactory {
 
   private static Constructor<? extends Log> logConstructor;
 
+  /**
+   * mybatis选取日志原理:
+   * 先看看有没有配置指定, 如果有配置, 就用自定义的日志
+   * 如果没有指定日志的情况下, 默认按以下顺序选择日志
+   */
   static {
-    //在用户没有指定日志的情况下
-    tryImplementation(LogFactory::useSlf4jLogging);//先slf4j
-    tryImplementation(LogFactory::useCommonsLogging);//jcl
-    tryImplementation(LogFactory::useLog4J2Logging);//log4j2
-    tryImplementation(LogFactory::useLog4JLogging);//log4j
-    tryImplementation(LogFactory::useJdkLogging);//jul
-    tryImplementation(LogFactory::useNoLogging);//没有日志
+    // 尝试先slf4j
+    tryImplementation(LogFactory::useSlf4jLogging);
+    // jcl
+    tryImplementation(LogFactory::useCommonsLogging);
+    // log4j2
+    tryImplementation(LogFactory::useLog4J2Logging);
+    // log4j
+    tryImplementation(LogFactory::useLog4JLogging);
+    // jul
+    tryImplementation(LogFactory::useJdkLogging);
+    // 没有日志
+    tryImplementation(LogFactory::useNoLogging);
   }
 
   private LogFactory() {

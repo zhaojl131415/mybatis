@@ -81,7 +81,7 @@ public class CachingExecutor implements Executor {
   public <E> List<E> query(MappedStatement ms, Object parameterObject, RowBounds rowBounds, ResultHandler resultHandler) throws SQLException {
     // getBoundSql 如果是${} 参数在这里映射的?  #{}不会处理
     BoundSql boundSql = ms.getBoundSql(parameterObject);
-    // 生成缓存的key 二级缓存
+    // 生成缓存的key 无论是一级缓存还是二级缓存都是同一个key
     CacheKey key = createCacheKey(ms, parameterObject, rowBounds, boundSql);
     return query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
   }

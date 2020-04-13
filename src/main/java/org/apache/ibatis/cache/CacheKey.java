@@ -34,9 +34,13 @@ public class CacheKey implements Cloneable, Serializable {
   private static final int DEFAULT_MULTIPLYER = 37;
   private static final int DEFAULT_HASHCODE = 17;
 
+  // 默认DEFAULT_MULTIPLYER 37
   private final int multiplier;
+  // 计算后的hashCode
   private int hashcode;
+  // 累加所有条件的hashCode
   private long checksum;
+  // 条件累加值
   private int count;
   // 8/21/2017 - Sonarlint flags this as needing to be marked transient.  While true if content is not serializable, this is not always true and thus should not be marked transient.
   private List<Object> updateList;
@@ -57,7 +61,12 @@ public class CacheKey implements Cloneable, Serializable {
     return updateList.size();
   }
 
+  /**
+   * 生成CacheKey的条件有多个, 所以方法会被调用多次
+   * @param object
+   */
   public void update(Object object) {
+    // 获取对象的hashCode
     int baseHashCode = object == null ? 1 : ArrayUtil.hashCode(object);
 
 //  java判断两个对象：  = =  判断的是内存地址
@@ -65,13 +74,16 @@ public class CacheKey implements Cloneable, Serializable {
 
 
 
-    //判断依据累加值
+    // 判断依据累加值: 其实就是这个方法的调用次数
     count++;
+    // 累加所有条件的hashCode
     checksum += baseHashCode;
     baseHashCode *= count;
 
+    // 计算hashCode
+    // multiplier默认为37 , hashcode第一次调用初始为17
     hashcode = multiplier * hashcode + baseHashCode;
-
+    //
     updateList.add(object);
   }
 
@@ -85,27 +97,37 @@ public class CacheKey implements Cloneable, Serializable {
   //  //Student1  name = 1  age =1
 
 
+  /**
+   * 判断CacheKey是否相等
+   * @param object
+   * @return
+   */
   @Override
   public boolean equals(Object object) {
+    // 判断两个对象的内存地址是否相同
     if (this == object) {
       return true;
     }
+    // 判断类型是否相同
     if (!(object instanceof CacheKey)) {
       return false;
     }
 
     final CacheKey cacheKey = (CacheKey) object;
 
+    // 判断hashcode是否相同
     if (hashcode != cacheKey.hashcode) {
       return false;
     }
+    // 判断累加所有条件的hashCode是否相同
     if (checksum != cacheKey.checksum) {
       return false;
     }
+    // 判断update方法调用次数是否相同
     if (count != cacheKey.count) {
       return false;
     }
-
+    // 遍历条件对象是否相同
     for (int i = 0; i < updateList.size(); i++) {
       Object thisObject = updateList.get(i);
       Object thatObject = cacheKey.updateList.get(i);
@@ -113,9 +135,14 @@ public class CacheKey implements Cloneable, Serializable {
         return false;
       }
     }
+    // 以上如果都相同, 两个CacheKey是同一个
     return true;
   }
 
+  /**
+   * 重写hashCode
+   * @return
+   */
   @Override
   public int hashCode() {
     return hashcode;

@@ -109,6 +109,12 @@ public class XMLConfigBuilder extends BaseBuilder {
       propertiesElement(root.evalNode("properties"));
       Properties settings = settingsAsProperties(root.evalNode("settings"));
       loadCustomVfs(settings);
+      /**
+       * 加载自定义日志实现 mybatis.xml:
+       * <settings>
+       *  <setting name="logImpl" value="LOG4J"/>
+       * </settings>
+       */
       loadCustomLogImpl(settings);
       // 把指定的别名对应的class存储在一个Map当中
       typeAliasesElement(root.evalNode("typeAliases"));

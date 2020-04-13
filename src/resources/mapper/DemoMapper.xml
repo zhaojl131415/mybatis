@@ -17,7 +17,7 @@
 
 -->
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper   namespace="com.DemoMapper" >
+<mapper namespace="com.DemoMapper">
     <cache eviction="" ></cache>
 
     <select useCache="false"  flushCache="true"   id="selectAll"    parameterType="String" resultType="Map">
@@ -31,7 +31,7 @@
 
     <!---->
     <!---->
-    <resultMap autoMapping="true" id="" type=""></resultMap>
+    <!--<resultMap autoMapping="true" id="" type=""></resultMap>-->
     <!---->
     <!--<resultMap id="" type=""></resultMap>-->
 
