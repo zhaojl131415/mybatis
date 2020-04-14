@@ -63,13 +63,14 @@ public class CacheKey implements Cloneable, Serializable {
 
   /**
    * 生成CacheKey的条件有多个, 所以方法会被调用多次
+   * 根据id/分页起始位置/sql/参数, 生成CacheKey
    * @param object
    */
   public void update(Object object) {
     // 获取对象的hashCode
     int baseHashCode = object == null ? 1 : ArrayUtil.hashCode(object);
 
-//  java判断两个对象：  = =  判断的是内存地址
+//  java判断两个对象：  ==  判断的是内存地址
 // map 判断两个key: 首先判断hashcode hashcode 相同的情况下  判断equals
 
 
