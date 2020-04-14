@@ -45,6 +45,7 @@ import org.apache.ibatis.transaction.Transaction;
 import org.apache.ibatis.type.TypeHandlerRegistry;
 
 /**
+ * 一级缓存
  * @author Clinton Begin
  */
 public abstract class BaseExecutor implements Executor {
@@ -153,6 +154,7 @@ public abstract class BaseExecutor implements Executor {
       queryStack++;
       /**
        * 从一级缓存中获取结果集
+       * 一级缓存不能关闭, 但是可以更改默认作用域: 可以从单个SqlSession改为单个Statement
        * localCache 一级缓存 作用域 单个SqlSession
        */
       list = resultHandler == null ? (List<E>) localCache.getObject(key) : null;

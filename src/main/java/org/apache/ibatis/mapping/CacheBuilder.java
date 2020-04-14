@@ -114,7 +114,14 @@ public class CacheBuilder {
       }
     }
   }
-  //装饰者设计模式
+
+  /**
+   * 装饰者设计模式
+   *
+   * Cache对象之间的引用顺序为：SynchronizedCache -> LoggingCache –> SerializedCache –> ScheduledCache –> LruCache –> PerpetualCache
+   * @param cache
+   * @return
+   */
   private Cache setStandardDecorators(Cache cache) {
     try {
       MetaObject metaCache = SystemMetaObject.forObject(cache);

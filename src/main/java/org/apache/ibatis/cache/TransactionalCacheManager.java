@@ -57,7 +57,9 @@ public class TransactionalCacheManager {
     }
   }
 
+  // 获取TransactionalCache
   private TransactionalCache getTransactionalCache(Cache cache) {
+    // 在transactionalCaches这个map中通过key获取, 获取到了,直接返回, 获取不到,新建一个返回
     return transactionalCaches.computeIfAbsent(cache, TransactionalCache::new);
   }
 

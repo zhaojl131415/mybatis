@@ -81,9 +81,9 @@ public class ParamNameResolver {
       if (name == null) {
         // @Param was not specified. 没有指定@Param。
         /**
-         * Spring MVC 底层调用的不是JDK的API  Spring MVC底层是去解析class字节码
+         * Spring MVC在controller接收参数时, 获取参数不是 arg0, arg1 格式, 原因是Spring MVC底层调用的不是JDK的API, 而是去解析class字节码
          *
-         * 在jdk8以前 调用这个getActualParamName() 会有问题 arg0
+         * 在jdk8以前 调用这个getActualParamName() 会有问题 arg0, arg1
          *
          * jdk 8且Mybatis必须是3.4.1版本以上
          * File->Settings->Build,Execution,Deployment->Compiler->Java Compiler 在 Additional command line parameters: 后面填上 -parameters
@@ -146,7 +146,7 @@ public class ParamNameResolver {
       int i = 0;
       // 遍历方法上所有的参数名称
       for (Map.Entry<Integer, String> entry : names.entrySet()) {
-        // jdk获取参数的问题，需要File | Settings | Build, Execution, Deployment | Compiler | Java Compiler中配置-parameters：names : arg0,arg1
+        // names : arg0,arg1 至于为什么names是arg0,arg1, 在当前类ParamNameResolver实例化方法里有介绍.
         param.put(entry.getValue(), args[entry.getKey()]);
         // 添加通用参数名称 add generic param names (param1, param2, ...)
         final String genericParamName = GENERIC_NAME_PREFIX + String.valueOf(i + 1);
