@@ -31,6 +31,8 @@ import org.apache.ibatis.mapping.SqlSource;
 import org.apache.ibatis.mapping.StatementType;
 import org.apache.ibatis.parsing.XNode;
 import org.apache.ibatis.scripting.LanguageDriver;
+import org.apache.ibatis.scripting.xmltags.XMLLanguageDriver;
+import org.apache.ibatis.scripting.xmltags.XMLScriptBuilder;
 import org.apache.ibatis.session.Configuration;
 
 /**
@@ -112,8 +114,8 @@ public class XMLStatementBuilder extends BaseBuilder {
      * 解析Sql：根据sql文本来判断是否需要动态解析
      * 如果没有动态sql语句且只有#{}的时候，直接静态解析使用?占位；当有${}的时候，不解析
      *
-     * org.apache.ibatis.scripting.xmltags.XMLLanguageDriver#createSqlSource(org.apache.ibatis.session.Configuration, org.apache.ibatis.parsing.XNode, java.lang.Class)
-     * org.apache.ibatis.scripting.xmltags.XMLScriptBuilder#parseScriptNode()
+     * @see XMLLanguageDriver#createSqlSource(org.apache.ibatis.session.Configuration, org.apache.ibatis.parsing.XNode, java.lang.Class)
+     * @see XMLScriptBuilder#parseScriptNode()
      */
     SqlSource sqlSource = langDriver.createSqlSource(configuration, context, parameterTypeClass);
     StatementType statementType = StatementType.valueOf(context.getStringAttribute("statementType", StatementType.PREPARED.toString()));

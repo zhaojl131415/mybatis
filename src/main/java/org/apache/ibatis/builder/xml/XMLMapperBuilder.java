@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import org.apache.ibatis.binding.MapperRegistry;
 import org.apache.ibatis.builder.BaseBuilder;
 import org.apache.ibatis.builder.BuilderException;
 import org.apache.ibatis.builder.CacheRefResolver;
@@ -99,6 +100,11 @@ public class XMLMapperBuilder extends BaseBuilder {
       configurationElement(parser.evalNode("/mapper"));
       configuration.addLoadedResource(resource);
       //绑定Namespace里面的Class对象
+      /**
+       * @see XMLMapperBuilder#bindMapperForNamespace()
+       * @see Configuration#addMapper(java.lang.Class)
+       * @see MapperRegistry#addMapper(java.lang.Class)
+       */
       bindMapperForNamespace();
     }
 

@@ -22,7 +22,9 @@ import java.util.Map;
 
 import org.apache.ibatis.builder.BaseBuilder;
 import org.apache.ibatis.builder.BuilderException;
+import org.apache.ibatis.builder.SqlSourceBuilder;
 import org.apache.ibatis.mapping.SqlSource;
+import org.apache.ibatis.parsing.GenericTokenParser;
 import org.apache.ibatis.parsing.XNode;
 import org.apache.ibatis.scripting.defaults.RawSqlSource;
 import org.apache.ibatis.session.Configuration;
@@ -68,14 +70,16 @@ public class XMLScriptBuilder extends BaseBuilder {
     MixedSqlNode rootSqlNode = parseDynamicTags(context);
     SqlSource sqlSource;
     if (isDynamic) {
-      // 纯文本，不解析 解析${}
+      // 动态sql，不解析 解析${}
       sqlSource = new DynamicSqlSource(configuration, rootSqlNode);
     } else {
       // 用占位符?方式来解析  解析#{}
       /**
-       * org.apache.ibatis.scripting.defaults.RawSqlSource#RawSqlSource(org.apache.ibatis.session.Configuration, org.apache.ibatis.scripting.xmltags.SqlNode, java.lang.Class<?>)
-       * org.apache.ibatis.scripting.defaults.RawSqlSource#RawSqlSource(org.apache.ibatis.session.Configuration, java.lang.String, java.lang.Class<?>)
-       * org.apache.ibatis.builder.SqlSourceBuilder#parse
+       * @see RawSqlSource#RawSqlSource(org.apache.ibatis.session.Configuration, org.apache.ibatis.scripting.xmltags.SqlNode, java.lang.Class<?>)
+       * @see RawSqlSource#RawSqlSource(org.apache.ibatis.session.Configuration, java.lang.String, java.lang.Class<?>)
+       * @see SqlSourceBuilder#parse(java.lang.String, java.lang.Class, java.util.Map)
+       * @see GenericTokenParser#parse(java.lang.String)
+       * @see SqlSourceBuilder.ParameterMappingTokenHandler#handleToken(java.lang.String): 把#{}替换成 ?
        */
       sqlSource = new RawSqlSource(configuration, rootSqlNode, parameterType);
     }
