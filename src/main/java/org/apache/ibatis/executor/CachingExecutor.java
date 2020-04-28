@@ -18,9 +18,11 @@ package org.apache.ibatis.executor;
 import java.sql.SQLException;
 import java.util.List;
 
+import org.apache.ibatis.builder.xml.XMLMapperBuilder;
 import org.apache.ibatis.cache.Cache;
 import org.apache.ibatis.cache.CacheKey;
 import org.apache.ibatis.cache.TransactionalCacheManager;
+import org.apache.ibatis.cache.decorators.TransactionalCache;
 import org.apache.ibatis.cursor.Cursor;
 import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.mapping.MappedStatement;
@@ -33,6 +35,7 @@ import org.apache.ibatis.session.RowBounds;
 import org.apache.ibatis.transaction.Transaction;
 
 /**
+ * 二级缓存
  * @author Clinton Begin
  * @author Eduardo Macarron
  */
@@ -81,7 +84,7 @@ public class CachingExecutor implements Executor {
   public <E> List<E> query(MappedStatement ms, Object parameterObject, RowBounds rowBounds, ResultHandler resultHandler) throws SQLException {
     // getBoundSql 如果是${} 参数在这里映射成 ? 的，#{}不会处理
     BoundSql boundSql = ms.getBoundSql(parameterObject);
-    // 生成缓存的key，用于二级缓存
+    // 生成缓存的key 无论是一级缓存还是二级缓存都是同一个key
     CacheKey key = createCacheKey(ms, parameterObject, rowBounds, boundSql);
     return query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
   }
@@ -98,11 +101,15 @@ public class CachingExecutor implements Executor {
   public <E> List<E> query(MappedStatement ms, Object parameterObject, RowBounds rowBounds, ResultHandler resultHandler, CacheKey key, BoundSql boundSql)
       throws SQLException {
     /**
-     * 获取二级缓存的Cache ms可以理解为Mapper
+     * 全局缓存默认就是开启的, 而开启单个mapper的namespace需要使用二级缓存还需配置<cache/>
+     *
+     * 获取是否配置二级缓存Cache配置<cache/>, 不是获取缓存. ms可以理解为Mapper
      * 二级缓存作用域：所有的sqlSession
      * 二级缓存缓存单位：namespace
-     * 二级缓存对象的默认类型为PerpetualCache，如果配置的缓存是默认类型，则mybatis会根据配置自动追加一系列装饰器。
+     * 二级缓存对象的默认类型为PerpetualCache，如果配置的缓存是默认类型，则mybatis会根据配置自动追加一系列装饰器。各个装饰器对象都只对原来的进行装饰, 不做修改.
      * Cache对象之间的引用顺序为：SynchronizedCache -> LoggingCache –> SerializedCache –> ScheduledCache –> LruCache –> PerpetualCache
+     * 在初始化阶段完成二级缓存对象的引用, 详见: {@link XMLMapperBuilder#cacheElement(org.apache.ibatis.parsing.XNode)}
+     * 以上各个Cache的详细介绍见: {@link Cache}
      */
     Cache cache = ms.getCache();
     if (cache != null) {
@@ -112,7 +119,10 @@ public class CachingExecutor implements Executor {
       if (ms.isUseCache() && resultHandler == null) {
         // 处理存储过程
         ensureNoOutParams(ms, boundSql);
-        // 事务管理器， 从缓存中获取值
+        // 事务管理器， 从缓存中获取值, 很重要
+        /**
+         * {@link TransactionalCache#getObject(java.lang.Object)}
+         */
         @SuppressWarnings("unchecked")
         List<E> list = (List<E>) tcm.getObject(cache, key);
         if (list == null) {

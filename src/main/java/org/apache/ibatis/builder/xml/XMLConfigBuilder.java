@@ -109,6 +109,12 @@ public class XMLConfigBuilder extends BaseBuilder {
       propertiesElement(root.evalNode("properties"));
       Properties settings = settingsAsProperties(root.evalNode("settings"));
       loadCustomVfs(settings);
+      /**
+       * 加载自定义日志实现 mybatis.xml:
+       * <settings>
+       *  <setting name="logImpl" value="LOG4J"/>
+       * </settings>
+       */
       loadCustomLogImpl(settings);
       // 把指定的别名对应的class存储在一个Map当中
       typeAliasesElement(root.evalNode("typeAliases"));
@@ -119,6 +125,7 @@ public class XMLConfigBuilder extends BaseBuilder {
       // 下面两个是用来配合MateObject用的，方便反射操作实体类的对象
       objectWrapperFactoryElement(root.evalNode("objectWrapperFactory"));
       reflectorFactoryElement(root.evalNode("reflectorFactory"));
+      // 配置
       settingsElement(settings);
       // read it after objectFactory and objectWrapperFactory issue #631
       // 处理数据源
@@ -273,6 +280,7 @@ public class XMLConfigBuilder extends BaseBuilder {
   private void settingsElement(Properties props) {
     configuration.setAutoMappingBehavior(AutoMappingBehavior.valueOf(props.getProperty("autoMappingBehavior", "PARTIAL")));
     configuration.setAutoMappingUnknownColumnBehavior(AutoMappingUnknownColumnBehavior.valueOf(props.getProperty("autoMappingUnknownColumnBehavior", "NONE")));
+    // 全局缓存默认开启, 如果需要开启单个Mapper缓存需要在mapper.xml中 加入标签 <cache/> 核心参数可不设置 使用默认参数
     configuration.setCacheEnabled(booleanValueOf(props.getProperty("cacheEnabled"), true));
     configuration.setProxyFactory((ProxyFactory) createInstance(props.getProperty("proxyFactory")));
     configuration.setLazyLoadingEnabled(booleanValueOf(props.getProperty("lazyLoadingEnabled"), false));

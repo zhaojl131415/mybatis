@@ -72,7 +72,7 @@ public class SimpleExecutor extends BaseExecutor {
       Configuration configuration = ms.getConfiguration();
       // 初始化PreparedStatement
       StatementHandler handler = configuration.newStatementHandler(wrapper, ms, parameter, rowBounds, resultHandler, boundSql);
-      // 关键步骤，类比jdbc 这一步传参已经赋上值了
+      // 关键步骤，初始化prepareStatement并且给#{}赋值
       stmt = prepareStatement(handler, ms.getStatementLog());
       // 类比：ResultSet resultSet = preparedStatement.executeQuery();
       return handler.query(stmt, resultHandler);

@@ -45,6 +45,7 @@ import org.apache.ibatis.transaction.Transaction;
 import org.apache.ibatis.type.TypeHandlerRegistry;
 
 /**
+ * 一级缓存
  * @author Clinton Begin
  */
 public abstract class BaseExecutor implements Executor {
@@ -154,6 +155,7 @@ public abstract class BaseExecutor implements Executor {
       queryStack++;
       /**
        * 从一级缓存中获取结果集
+       * 一级缓存不能关闭, 但是可以更改默认作用域: 可以从单个SqlSession改为单个Statement
        * localCache 一级缓存 作用域 单个SqlSession
        */
       list = resultHandler == null ? (List<E>) localCache.getObject(key) : null;
@@ -203,18 +205,26 @@ public abstract class BaseExecutor implements Executor {
 
   @Override
   public CacheKey createCacheKey(MappedStatement ms, Object parameterObject, RowBounds rowBounds, BoundSql boundSql) {
+    //
     if (closed) {
       throw new ExecutorException("Executor was closed.");
     }
     CacheKey cacheKey = new CacheKey();
-    //hashcode的计算 判断是否是同一条查询的依据
-    // 首先 sql id相同  com.DemoMapper.selectAll
-    //如果开启分页 起始位置得相同 查询的条数得相同
-    //绑定的sql得相同
-    //传的参数得相同
+    /**
+     * hashcode的计算 判断是否是同一条查询的依据
+     *
+     * 首先 sql id相同 Id为Mapper.xml文件中<mapper namespace="">namespace的值 + <select|insert|update|delete id=""/>中的id: com.DemoMapper.selectAll
+     * 如果开启分页 起始位置得相同 查询的条数得相同
+     * 绑定的sql得相同
+     * 传的参数得相同
+     *
+     */
     cacheKey.update(ms.getId());
+    // 起始位置
     cacheKey.update(rowBounds.getOffset());
+    // 查询记录数
     cacheKey.update(rowBounds.getLimit());
+    // sql得相同
     cacheKey.update(boundSql.getSql());
     List<ParameterMapping> parameterMappings = boundSql.getParameterMappings();
     TypeHandlerRegistry typeHandlerRegistry = ms.getConfiguration().getTypeHandlerRegistry();
@@ -233,6 +243,7 @@ public abstract class BaseExecutor implements Executor {
           MetaObject metaObject = configuration.newMetaObject(parameterObject);
           value = metaObject.getValue(propertyName);
         }
+        // 传参
         cacheKey.update(value);
       }
     }

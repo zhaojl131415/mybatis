@@ -121,6 +121,20 @@ public class MapperBuilderAssistant extends BaseBuilder {
     }
   }
 
+  /**
+   * 构建缓存: 构造器模式
+   *
+   * Cache对象之间的引用顺序为：SynchronizedCache -> LoggingCache –> SerializedCache –> ScheduledCache –> LruCache –> PerpetualCache
+   *
+   * @param typeClass
+   * @param evictionClass
+   * @param flushInterval
+   * @param size
+   * @param readWrite
+   * @param blocking
+   * @param props
+   * @return
+   */
   public Cache useNewCache(Class<? extends Cache> typeClass,
       Class<? extends Cache> evictionClass,
       Long flushInterval,
@@ -144,8 +158,8 @@ public class MapperBuilderAssistant extends BaseBuilder {
         .properties(props)
         /**
          * 方法调用链
-         * org.apache.ibatis.mapping.CacheBuilder#build()
-         * org.apache.ibatis.mapping.CacheBuilder#setStandardDecorators(org.apache.ibatis.cache.Cache)
+         * {@link CacheBuilder#build() }
+         * {@link CacheBuilder#setStandardDecorators(org.apache.ibatis.cache.Cache) }
          * 根据配置的属性：装饰对应的Cache
          */
         .build();

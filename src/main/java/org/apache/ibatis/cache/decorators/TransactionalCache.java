@@ -25,6 +25,7 @@ import org.apache.ibatis.logging.Log;
 import org.apache.ibatis.logging.LogFactory;
 
 /**
+ * 二级缓存事务缓冲区
  * The 2nd level cache transactional buffer.
  * <p>
  * This class holds all cache entries that are to be added to the 2nd level cache during a Session.
@@ -34,6 +35,9 @@ import org.apache.ibatis.logging.LogFactory;
  *
  * @author Clinton Begin
  * @author Eduardo Macarron
+ *
+ * commit: 提交待提交的缓存(entriesToAddOnCommit)
+ * rollback: 清空待提交的缓存(entriesToAddOnCommit), 清空在真实缓存(delegate)中未命中(entriesMissedInCache)的值
  */
 public class TransactionalCache implements Cache {
 
@@ -70,8 +74,10 @@ public class TransactionalCache implements Cache {
   @Override
   public Object getObject(Object key) {
     // issue #116
+    // 通过key去缓存对象中获取
     Object object = delegate.getObject(key);
     if (object == null) {
+      // 获取不到, 存入未命中缓存集合
       entriesMissedInCache.add(key);
     }
     // issue #146
@@ -85,7 +91,9 @@ public class TransactionalCache implements Cache {
 
 
   /**
-   * 本来应该put到缓存里面去，这里先put到需要待提交的空间里面去
+   * 本来应该put到缓存里面去，这里先put到需要待提交的空间里面去,
+   * 解决脏读的问题: 避免事务回滚后, 缓存和数据库数据不一致, 通过使用待提交空间缓存来解决
+   *
    * @param key Can be any object but usually it is a {@link CacheKey}
    * @param object
    */
@@ -105,15 +113,17 @@ public class TransactionalCache implements Cache {
     entriesToAddOnCommit.clear();
   }
 
+  // 事务提交
   public void commit() {
     if (clearOnCommit) {
       delegate.clear();
     }
-    // 把待提交的缓存刷到真是缓存去
+    // 把待提交的缓存刷到真实缓存去
     flushPendingEntries();
     reset();
   }
 
+  // 事务回滚
   public void rollback() {
     unlockMissedEntries();
     reset();
@@ -130,7 +140,7 @@ public class TransactionalCache implements Cache {
 
   // 刷新待提交缓存到真实缓存
   private void flushPendingEntries() {
-    // 遍历待提交空间的缓存
+    // 遍历待提交的缓存
     for (Map.Entry<Object, Object> entry : entriesToAddOnCommit.entrySet()) {
       //put到真实缓存
       delegate.putObject(entry.getKey(), entry.getValue());
