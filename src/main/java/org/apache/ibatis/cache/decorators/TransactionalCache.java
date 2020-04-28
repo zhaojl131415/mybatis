@@ -120,16 +120,18 @@ public class TransactionalCache implements Cache {
     }
     // 把待提交的缓存刷到真实缓存去
     flushPendingEntries();
+    // 重置二级缓存临时区
     reset();
   }
 
   // 事务回滚
   public void rollback() {
     unlockMissedEntries();
+    // 重置二级缓存临时区
     reset();
   }
 
-  // 重置
+  // 重置二级缓存临时区
   private void reset() {
     clearOnCommit = false;
     // 清空待提交缓存
@@ -156,7 +158,7 @@ public class TransactionalCache implements Cache {
   private void unlockMissedEntries() {
     for (Object entry : entriesMissedInCache) {
       try {
-        //清空在真实缓存区里面的未命中的缓存
+        // 清空在真实缓存区里面的未命中的缓存
         delegate.removeObject(entry);
       } catch (Exception e) {
         log.warn("Unexpected exception while notifiying a rollback to the cache adapter."

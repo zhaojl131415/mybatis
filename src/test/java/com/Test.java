@@ -40,7 +40,7 @@ public class Test {
     //其实我们mybatis初始化方法 除了XML意外 其实也可以0xml完成
 //   new SqlSessionFactoryBuilder().b
     SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
-    Configuration configuration = sqlSessionFactory.getConfiguration();
+//    Configuration configuration = sqlSessionFactory.getConfiguration();
     //使用者可以随时使用或者销毁缓存
     //默认sqlsession不会自动提交
     //从SqlSession对象打开开始 缓存就已经存在
