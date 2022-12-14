@@ -92,11 +92,21 @@ public class DefaultSqlSessionFactory implements SqlSessionFactory {
     try {
       // 获取配置环境：其中包括数据源、事务工厂
       final Environment environment = configuration.getEnvironment();
-      // 获取事务工厂
+      /**
+       * 获取事务工厂
+       * spring整合mybatis, mybatis-spring源码
+       * @see org.mybatis.spring.transaction.SpringManagedTransactionFactory
+       */
       final TransactionFactory transactionFactory = getTransactionFactoryFromEnvironment(environment);
-      // 创建事务
+      /**
+       * 创建事务
+       * spring整合mybatis, mybatis-spring源码: 事务类型为{@link org.mybatis.spring.transaction.SpringManagedTransaction#SpringManagedTransaction}
+       * @see org.mybatis.spring.transaction.SpringManagedTransactionFactory#newTransaction(javax.sql.DataSource, org.apache.ibatis.session.TransactionIsolationLevel, boolean)
+       */
       tx = transactionFactory.newTransaction(environment.getDataSource(), level, autoCommit);
-      // 创建执行器
+      /**
+       * 根据上面创建好的事务和执行类型创建一个执行器
+       */
       final Executor executor = configuration.newExecutor(tx, execType);
       // 构建默认SqlSession
       return new DefaultSqlSession(configuration, executor, autoCommit);

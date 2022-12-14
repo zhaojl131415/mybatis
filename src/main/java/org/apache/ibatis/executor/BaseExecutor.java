@@ -37,10 +37,8 @@ import org.apache.ibatis.mapping.ParameterMode;
 import org.apache.ibatis.mapping.StatementType;
 import org.apache.ibatis.reflection.MetaObject;
 import org.apache.ibatis.reflection.factory.ObjectFactory;
-import org.apache.ibatis.session.Configuration;
-import org.apache.ibatis.session.LocalCacheScope;
-import org.apache.ibatis.session.ResultHandler;
-import org.apache.ibatis.session.RowBounds;
+import org.apache.ibatis.session.*;
+import org.apache.ibatis.session.defaults.DefaultSqlSessionFactory;
 import org.apache.ibatis.transaction.Transaction;
 import org.apache.ibatis.type.TypeHandlerRegistry;
 
@@ -52,6 +50,7 @@ public abstract class BaseExecutor implements Executor {
 
   private static final Log log = LogFactory.getLog(BaseExecutor.class);
 
+  // 事务
   protected Transaction transaction;
   protected Executor wrapper;
 
@@ -348,7 +347,10 @@ public abstract class BaseExecutor implements Executor {
     // 一级缓存，先put个占位符进去，保证get时不为空，减少资源竞争，减少并发读取数据库
     localCache.putObject(key, EXECUTION_PLACEHOLDER);
     try {
-      // 查询 org.apache.ibatis.executor.SimpleExecutor.doQuery
+      /**
+       * 执行查询
+       * @see SimpleExecutor#doQuery(MappedStatement, Object, RowBounds, ResultHandler, BoundSql)
+       */
       list = doQuery(ms, parameter, rowBounds, resultHandler, boundSql);
     } finally {
       // 移除key
@@ -363,6 +365,14 @@ public abstract class BaseExecutor implements Executor {
   }
 
   protected Connection getConnection(Log statementLog) throws SQLException {
+    /**
+     * 从事务中获取连接池
+     * 在执行方法{@link DefaultSqlSessionFactory#openSessionFromDataSource(ExecutorType, TransactionIsolationLevel, boolean)}打开SqlSession时, 创建了执行器, 指定了事务类型.
+     * <p/>
+     * spring整合mybatis, mybatis-spring源码: 事务类型为{@link org.mybatis.spring.transaction.SpringManagedTransaction}
+     * 所以这里获取连接池会调用:
+     * @see org.mybatis.spring.transaction.SpringManagedTransaction#getConnection
+     */
     Connection connection = transaction.getConnection();
     if (statementLog.isDebugEnabled()) {
       return ConnectionLogger.newInstance(connection, statementLog, queryStack);

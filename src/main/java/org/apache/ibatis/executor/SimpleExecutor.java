@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.ibatis.cursor.Cursor;
+import org.apache.ibatis.executor.statement.SimpleStatementHandler;
 import org.apache.ibatis.executor.statement.StatementHandler;
 import org.apache.ibatis.logging.Log;
 import org.apache.ibatis.mapping.BoundSql;
@@ -75,6 +76,9 @@ public class SimpleExecutor extends BaseExecutor {
       // 关键步骤，初始化prepareStatement并且给#{}赋值
       stmt = prepareStatement(handler, ms.getStatementLog());
       // 类比：ResultSet resultSet = preparedStatement.executeQuery();
+      /**
+       * @see SimpleStatementHandler#query(Statement, ResultHandler)
+       */
       return handler.query(stmt, resultHandler);
     } finally {
       closeStatement(stmt);

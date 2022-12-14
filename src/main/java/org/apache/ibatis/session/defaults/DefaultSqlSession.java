@@ -28,9 +28,7 @@ import org.apache.ibatis.binding.BindingException;
 import org.apache.ibatis.cursor.Cursor;
 import org.apache.ibatis.exceptions.ExceptionFactory;
 import org.apache.ibatis.exceptions.TooManyResultsException;
-import org.apache.ibatis.executor.BatchResult;
-import org.apache.ibatis.executor.ErrorContext;
-import org.apache.ibatis.executor.Executor;
+import org.apache.ibatis.executor.*;
 import org.apache.ibatis.executor.result.DefaultMapResultHandler;
 import org.apache.ibatis.executor.result.DefaultResultContext;
 import org.apache.ibatis.mapping.MappedStatement;
@@ -145,7 +143,12 @@ public class DefaultSqlSession implements SqlSession {
     try {
       // 初始化xml解析时，每个sql语句封装成MappedStatement，放到map中存起来了，这里就从map中取出来
       MappedStatement ms = configuration.getMappedStatement(statement);
-      // 执行查询：如果打开了二级缓存，CachingExecutor.query()
+      /**
+       * 执行查询：
+       * @see BaseExecutor#query(MappedStatement, Object, RowBounds, ResultHandler)
+       * 如果打开了二级缓存:
+       * @see CachingExecutor#query(MappedStatement, Object, RowBounds, ResultHandler)
+       */
       return executor.query(ms, wrapCollection(parameter), rowBounds, Executor.NO_RESULT_HANDLER);
     } catch (Exception e) {
       throw ExceptionFactory.wrapException("Error querying database.  Cause: " + e, e);
